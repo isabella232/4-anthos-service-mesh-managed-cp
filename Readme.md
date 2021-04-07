@@ -32,6 +32,7 @@ export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT_ID} \
     --format="value(projectNumber)")
 export CLUSTER_NAME=asm-mcp-demo
 export CLUSTER_ZONE=us-central1-a
+export WORKLOAD_POOL=${PROJECT_ID}.svc.id.goog
 ```
 
 ## Create a cluster
@@ -55,7 +56,43 @@ gcloud beta container clusters create ${CLUSTER_NAME} \
 
 ## Apply Google Managed Control Plane
 
+Run the installation script for each cluster that will use the Google-managed control plane:
+
+```sh
+./install_asm --mode install --managed -p PROJECT_ID \
+    -l LOCATION -n CLUSTER_NAME -v \
+    --output_dir CLUSTER_NAME --enable-all
+```
+
+The script will download to the specified `--output_dir` all the files for configuring the managed control plane, installing an Istio Gateway, along with the istioctl tool and sample applications.
+
 ## Install the Istio Ingress Gateway (optional)
+
+Change directory to the root of the installation directory. Inspect the content of the `managed_control_plane_gateway.yaml` file, and edit the file if necessary.
+
+From the root of the installation directory, use the istioctl tool to install the Istio Gateway by running this command:
+
+```sh
+./bin/istioctl install -f managed_control_plane_gateway.yaml --set revision=asm-managed -y
+```
+
+When the previous command finishes, check for a new gateway service by using the following command:
+
+```sh
+kubectl get services -n istio-system
+```
+
+In addition, one or more ingress gateways should appear in the output of the following command, depending on the configuration in the managed_control_plane_gateway.yaml file:
+
+```sh
+kubectl get pod -n istio-system
+```
+Verify the expected output:
+```sh
+NAME                                    READY   STATUS    RESTARTS   AGE
+istio-ingressgateway-8fd856768-9hjdb    1/1     Running   0          44s
+istio-ingressgateway-8fd856768-t5xtm    1/1     Running   0          44s
+```
 
 ## Update istio-injection labels
 
