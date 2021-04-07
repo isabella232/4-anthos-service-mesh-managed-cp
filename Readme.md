@@ -175,7 +175,8 @@ Change directory to the root of the installation directory. Inspect the content 
 From the root of the installation directory, use the istioctl tool to install the Istio Gateway by running this command:
 
 ```sh
-./bin/istioctl install -f managed_control_plane_gateway.yaml --set revision=asm-managed -y
+cd ${CLUSTER_NAME}
+./istioctl install -f managed_control_plane_gateway.yaml --set revision=asm-managed -y
 ```
 
 When the previous command finishes, check for a new gateway service by using the following command:
@@ -205,8 +206,7 @@ To migrate to Google-managed control plane, perform the following steps:
 1. Replace the current namespace label with the `istio.io/rev:asm-managed` label:
 
 ```sh
-kubectl label namespace default istio-injection- istio.io/rev=asm-managed \
-   --overwrite
+kubectl label namespace default istio-injection- istio.io/rev=asm-managed --overwrite
 ```
 
 2. Perform a rolling upgrade of deployments in the namespace:
@@ -224,3 +224,20 @@ kubectl delete Service,Deployment,HorizontalPodAutoscaler,PodDisruptionBudget is
 ```
 
 If you used `istioctl kube-inject` instead of automatic injection, or if you installed additional gateways, check the metrics for the control plane, and verify that the number of connected endpoints is zero.
+
+## Verify control plane metrics
+
+To verify that your configuration works correctly:
+
+In the Cloud Console, view the control plane metrics: [Go to Metrics Explorer](https://console.cloud.google.com/monitoring/metrics-explorer?pageState=%7B%22xyChart%22:%7B%22dataSets%22:%5B%7B%22timeSeriesFilter%22:%7B%22filter%22:%22metric.type%3D%5C%22istio.io%2Fcontrol%2Fproxy_clients%5C%22%20resource.type%3D%5C%22k8s_container%5C%22%20resource.label.%5C%22container_name%5C%22%3D%5C%22cr-asm-managed%5C%22%22,%22minAlignmentPeriod%22:%2260s%22,%22unitOverride%22:%221%22,%22aggregations%22:%5B%7B%22perSeriesAligner%22:%22ALIGN_MEAN%22,%22crossSeriesReducer%22:%22REDUCE_SUM%22,%22groupByFields%22:%5B%22metric.label.%5C%22revision%5C%22%22,%22metric.label.%5C%22proxy_version%5C%22%22%5D%7D,%7B%22crossSeriesReducer%22:%22REDUCE_NONE%22%7D%5D%7D,%22targetAxis%22:%22Y1%22,%22plotType%22:%22LINE%22%7D%5D,%22options%22:%7B%22mode%22:%22COLOR%22%7D,%22constantLines%22:%5B%5D,%22timeshiftDuration%22:%220s%22,%22y1Axis%22:%7B%22label%22:%22y1Axis%22,%22scale%22:%22LINEAR%22%7D%7D,%22isAutoRefresh%22:true,%22timeSelection%22:%7B%22timeRange%22:%221h%22%7D%7D&_ga=2.106287555.1790283770.1617715592-1415230043.1614252792)
+
+Choose your workspace and add a custom query using the following parameters:
+
+- **Resource** type: Kubernetes Container
+- **Metric**: Proxy Clients
+- **Filter:** container_name="cr-asm-managed"
+- **Group By:** revision label and proxy_version label
+- **Aggregator** sum
+- **Period:** 1 minute
+
+When you run Anthos Service Mesh with both a Google-managed and a customer-managed control plane, you can tell the metrics apart by their container name. For example, managed metrics have `container_name="cr-asm-managed"`, while unmanaged metrics have `container_name="discovery"`. To display metrics from both, remove the Filter on `container_name="cr-asm-managed"`.
