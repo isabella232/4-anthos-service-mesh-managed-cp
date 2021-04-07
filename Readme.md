@@ -116,6 +116,15 @@ kubectl get svc istio-ingressgateway -n istio-system
 ```
 And test your application by accessing : `http://EXTERNAL_IP/productpage`
 
+## Add cluster to environ
+
+Run this command to register your cluster :
+
+```sh
+gcloud beta container hub memberships register ${CLUSTER_NAME}  --gke-cluster=${LOCATION}/${CLUSTER_NAME}  --enable-workload-identity
+```
+For more information, refer to : [Registering a cluster](https://cloud.google.com/anthos/multicluster-management/connect/registering-a-cluster)
+
 ## Download installation script for Managed Control Plane
 
 1. Download the version of the script that installs Anthos Service Mesh 1.9.2 to the current working directory:
