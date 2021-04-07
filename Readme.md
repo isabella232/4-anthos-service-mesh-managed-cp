@@ -121,8 +121,11 @@ And test your application by accessing : `http://EXTERNAL_IP/productpage`
 Run this command to register your cluster :
 
 ```sh
-gcloud beta container hub memberships register ${CLUSTER_NAME}  --gke-cluster=${LOCATION}/${CLUSTER_NAME}  --enable-workload-identity
+gcloud beta container hub memberships register ${CLUSTER_NAME}  \
+--gke-cluster=${LOCATION}/${CLUSTER_NAME} \ 
+--enable-workload-identity
 ```
+
 For more information, refer to : [Registering a cluster](https://cloud.google.com/anthos/multicluster-management/connect/registering-a-cluster)
 
 ## Download installation script for Managed Control Plane
