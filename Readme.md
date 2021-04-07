@@ -116,13 +116,13 @@ kubectl get svc istio-ingressgateway -n istio-system
 ```
 And test your application by accessing : `http://EXTERNAL_IP/productpage`
 
-## Add cluster to environ
+## Register your cluster to Anthos' Hub
 
 Run this command to register your cluster :
 
 ```sh
 gcloud beta container hub memberships register ${CLUSTER_NAME}  \
-    --gke-cluster=${LOCATION}/${CLUSTER_NAME} \ 
+    --gke-cluster=${LOCATION}/${CLUSTER_NAME} \
     --enable-workload-identity
 ```
 
