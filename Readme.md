@@ -50,9 +50,93 @@ gcloud beta container clusters create ${CLUSTER_NAME} \
 
 ## Istio Installation
 
-## Bookinfo app deployment
+1. Go to the Istio release page to download the installation file for your OS, or download and extract the latest release automatically (Linux or macOS):
 
-## Enable Sidecar injection
+```sh
+curl -L https://istio.io/downloadIstio | sh -
+```
+
+2. Move to the Istio package directory. For example, if the package is istio-1.9.2:
+
+```sh
+cd istio-1.9.2
+```
+
+The installation directory contains:
+
+- Sample applications in samples/
+- The istioctl client binary in the bin/ directory.
+
+3. Add the istioctl client to your path (Linux or macOS):
+
+```sh
+export PATH=$PWD/bin:$PATH
+```
+4. Let's perform a simple installation of Istio :
+
+```sh
+istioctl install
+```
+
+5. Add a namespace label to instruct Istio to automatically inject Envoy sidecar proxies when you deploy your application later:
+
+```sh
+kubectl label namespace default istio-injection=enabled
+```
+
+## Deploy bookinfo
+
+1. Deploy the Bookinfo sample application:
+
+```sh
+kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+```
+
+2. Associate the application with the Istio gateway
+
+```sh
+kubectl apply -f samples/bookinfo/networking/bookinfo-gateway.yaml
+```
+
+3. Ensure that there are no issues with the configuration:
+
+```sh
+istioctl analyze
+```
+
+4. Retrieve `istio-ingressgateway` IP address
+
+```sh
+kubectl get svc istio-ingressgateway -n istio-system
+```
+And test your application by accessing : `http://EXTERNAL_IP/productpage`
+
+## Download installation script for Managed Control Plane
+
+1. Download the version of the script that installs Anthos Service Mesh 1.9.2 to the current working directory:
+
+```sh
+curl https://storage.googleapis.com/csm-artifacts/asm/install_asm_1.9 > install_asm
+```
+
+2. Download the SHA-256 of the file to the current working directory:
+```sh
+curl https://storage.googleapis.com/csm-artifacts/asm/install_asm_1.9.sha256 > install_asm.sha256
+```
+
+3. With both files in the same directory, verify the download:
+
+```sh
+sha256sum -c --ignore-missing install_asm.sha256
+```
+
+If the verification is successful, the command outputs: `install_asm: OK` For compatibility, the preceding command includes the `--ignore-missing` flag to allow any version of the script to be renamed to `install_asm`.
+
+4. Make the script executable:
+
+```sh
+chmod +x install_asm
+```
 
 ## Apply Google Managed Control Plane
 
