@@ -1,6 +1,6 @@
 # Anthos Service Mesh Managed Control Plane
 
-This guide is a cheat sheet to easily demonstrate the deployment of istio OSS on a GKE Cluster. Once done we'll migrate to Anthos Service Mesh - Managed Control Plane. Most of the steps are subject to change soon because ASM MCP is still in Public Preview. Always refer first to Google Cloud documentation to get up to date instructions :
+This guide is a cheat sheet to easily demonstrate the deployment of istio OSS on a GKE Cluster. Once done we'll migrate to Anthos Service Mesh - Managed Control Plane. Most of the steps are subject to change soon because ASM MCP is still in Public Preview. Always refer first to official documentation to get up to date instructions :
 
 - [Managed Control Plane guide](https://cloud.google.com/service-mesh/docs/managed-control-plane)
 - [Istio instalation guide](https://istio.io/latest/docs/setup/install/istioctl/)
