@@ -74,6 +74,7 @@ The installation directory contains:
 ```sh
 export PATH=$PWD/bin:$PATH
 ```
+
 4. Let's perform a simple installation of Istio :
 
 ```sh
@@ -85,6 +86,8 @@ istioctl install
 ```sh
 kubectl label namespace default istio-injection=enabled
 ```
+
+We assume here that we will use the default namespace. Feel free to use another one according to your needs.
 
 ## Deploy bookinfo
 
