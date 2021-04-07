@@ -32,6 +32,7 @@ export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT_ID} \
     --format="value(projectNumber)")
 export CLUSTER_NAME=asm-mcp-demo
 export CLUSTER_ZONE=us-central1-a
+export LOCATION=us-central1
 export WORKLOAD_POOL=${PROJECT_ID}.svc.id.goog
 ```
 
@@ -40,8 +41,9 @@ export WORKLOAD_POOL=${PROJECT_ID}.svc.id.goog
 ```sh
 gcloud config set compute/zone ${CLUSTER_ZONE}
 gcloud beta container clusters create ${CLUSTER_NAME} \
+    --region=${LOCATION}
     --machine-type=n1-standard-4 \
-    --num-nodes=4 \
+    --num-nodes=3 \
     --workload-pool=${WORKLOAD_POOL} \
     --enable-stackdriver-kubernetes \
     --subnetwork=default \
@@ -143,9 +145,9 @@ chmod +x install_asm
 Run the installation script for each cluster that will use the Google-managed control plane:
 
 ```sh
-./install_asm --mode install --managed -p PROJECT_ID \
-    -l LOCATION -n CLUSTER_NAME -v \
-    --output_dir CLUSTER_NAME --enable-all
+./install_asm --mode install --managed -p ${PROJECT_ID} \
+    -l ${LOCATION} -n ${CLUSTER_NAME} -v \
+    --output_dir ${CLUSTER_NAME} --enable-all
 ```
 
 The script will download to the specified `--output_dir` all the files for configuring the managed control plane, installing an Istio Gateway, along with the istioctl tool and sample applications.
