@@ -1,10 +1,14 @@
 # Anthos Service Mesh Managed Control Plane
 
-This guide is a cheat sheet to easily demonstrate the deployment of istio OSS on a GKE Cluster. Once done we'll migrate to Anthos Service Mesh - Managed Control Plane. Most of the steps are subject to change soon because ASM MCP is still in Public Preview. Always refer first to Google Cloud documentation to get up to date instructions : 
+This guide is a cheat sheet to easily demonstrate the deployment of istio OSS on a GKE Cluster. Once done we'll migrate to Anthos Service Mesh - Managed Control Plane. Most of the steps are subject to change soon because ASM MCP is still in Public Preview. Always refer first to Google Cloud documentation to get up to date instructions :
 
 - [Managed Control Plane guide](https://cloud.google.com/service-mesh/docs/managed-control-plane)
 - [Istio instalation guide](https://istio.io/latest/docs/setup/install/istioctl/)
 - [Anthos Service Mesh Installation Guide](https://cloud.google.com/service-mesh/docs/scripted-install/gke-install)
+
+## Architecture
+
+![ASM Managed Control Plane Architecture](asm-mcp-architecture.png)
 
 ## Pre-requisites
 
@@ -43,123 +47,41 @@ gcloud beta container clusters create ${CLUSTER_NAME} \
     --release-channel=regular
 ```
 
-## Run install script
+## Istio Installation
 
-Cf : `https://cloud.google.com/service-mesh/docs/scripted-install/gke-asm-onboard-1-7`
+## Bookinfo app deployment
 
 ## Enable Sidecar injection
 
-```
-kubectl label namespace default istio-injection- istio.io/rev=asm-173-6 --overwrite
-```
+## Apply Google Managed Control Plane
 
-## Enable default destination rules
+## Install the Istio Ingress Gateway (optional)
 
-```
-kubectl apply -f samples/bookinfo/networking/destination-rule-all-mtls.yaml
-```
+## Update istio-injection labels
 
+The Anthos Service Mesh Google-managed control plane only supports migration from Anthos Service Mesh 1.9 that uses Mesh CA.
 
-## Request routing example
+To migrate to Google-managed control plane, perform the following steps:
 
-- First we create a virtual service to route all the traffic to the V1
+1. Replace the current namespace label with the `istio.io/rev:asm-managed` label:
 
 ```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-all-v1.yaml
+kubectl label namespace default istio-injection- istio.io/rev=asm-managed \
+   --overwrite
 ```
 
-- Check subset definitions
+2. Perform a rolling upgrade of deployments in the namespace:
 
 ```sh
-kubectl get destinationrules -o yaml
+kubectl rollout restart deployment -n default
 ```
-- Restrict users to `jason`for v2
+
+## Delete old control plane
+
+After you install and confirm that all namespaces use the Google-managed control plane, you can delete the old control plane.
 
 ```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-reviews-test-v2.yaml
-```
-## Fault injection
-
-Before starting : 
-
-```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-all-v1.yaml
-kubectl apply -f samples/bookinfo/networking/virtual-service-reviews-test-v2.yaml
+kubectl delete Service,Deployment,HorizontalPodAutoscaler,PodDisruptionBudget istiod -n istio-system --ignore-not-found=true
 ```
 
-We'll create a fault injection only for Jason
-
-```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-ratings-test-delay.yaml
-```
-
-We injected a delay on rating service of 7s however we do observe that the service is ending in error. Why ? A bug is in the code, there is a hardcoded timeout of 3s
-
-Now we will test to inject an http abort fault
-
-```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-ratings-test-abort.yaml
-```
-
-As we can see, when connected as Jason the service doesn't answer 
-
-## Traffic Shifting
-
-Reset the env : `kubectl apply -f samples/bookinfo/networking/virtual-service-all-v1.yaml`
-
-Now let's migrate 50% of the traffic to v3
-
-```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-reviews-50-v3.yaml
-```
-If we consider the service stable we can migrate all the traffic to it :
-
-```sh
-kubectl apply -f samples/bookinfo/networking/virtual-service-reviews-v3.yaml
-```
-
-We saw here how we can support canary / green blue deployments
-
-## Traffic mirroring
-
-Open a term with four windows
-
-- Create httpbin v1 and v2 deployments, service and a virtual service to route traffic to v1 only. Also create sleep pod :
-
-```sh
-kubectl create -f httpbin-v1.yaml
-kubectl create -f httpbin-v2.yaml
-kubectl create -f httpbin-svc.yaml
-kubectl apply -f httpbin-virtualsvc.yaml
-kubectl create -f sleep-deployment.yaml
-```
-
-- Send some traffic and check logs to see
-
-```sh
-#Get Sleep pod and send traffic to app
-export SLEEP_POD=$(kubectl get pod -l app=sleep -o jsonpath={.items..metadata.name})
-kubectl exec "${SLEEP_POD}" -c sleep -- curl -s http://httpbin:8000/headers
-
-#Check logs on V1
-export V1_POD=$(kubectl get pod -l app=httpbin,version=v1 -o jsonpath={.items..metadata.name})
-kubectl logs "$V1_POD" -c httpbin
-
-#Check logs en V2
-export V2_POD=$(kubectl get pod -l app=httpbin,version=v2 -o jsonpath={.items..metadata.name})
-kubectl logs "$V2_POD" -c httpbin
-```
-
-Apply mirror rule : `kubectl apply -f httpbin-mirror-v2.yaml`
-
-- Cleaning up :
-
-```sh
-kubectl delete virtualservice httpbin
-kubectl delete destinationrule httpbin
-
-#Shutdown the httpbin service and client:
-
-kubectl delete deploy httpbin-v1 httpbin-v2 sleep
-kubectl delete svc httpbin
-```
+If you used `istioctl kube-inject` instead of automatic injection, or if you installed additional gateways, check the metrics for the control plane, and verify that the number of connected endpoints is zero.
