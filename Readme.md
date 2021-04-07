@@ -41,7 +41,7 @@ export WORKLOAD_POOL=${PROJECT_ID}.svc.id.goog
 ```sh
 gcloud config set compute/zone ${CLUSTER_ZONE}
 gcloud beta container clusters create ${CLUSTER_NAME} \
-    --region=${LOCATION}
+    --region=${LOCATION} \
     --machine-type=n1-standard-4 \
     --num-nodes=3 \
     --workload-pool=${WORKLOAD_POOL} \
