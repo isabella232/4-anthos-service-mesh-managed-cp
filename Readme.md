@@ -122,8 +122,8 @@ Run this command to register your cluster :
 
 ```sh
 gcloud beta container hub memberships register ${CLUSTER_NAME}  \
---gke-cluster=${LOCATION}/${CLUSTER_NAME} \ 
---enable-workload-identity
+    --gke-cluster=${LOCATION}/${CLUSTER_NAME} \ 
+    --enable-workload-identity
 ```
 
 For more information, refer to : [Registering a cluster](https://cloud.google.com/anthos/multicluster-management/connect/registering-a-cluster)
@@ -137,6 +137,7 @@ curl https://storage.googleapis.com/csm-artifacts/asm/install_asm_1.9 > install_
 ```
 
 2. Download the SHA-256 of the file to the current working directory:
+
 ```sh
 curl https://storage.googleapis.com/csm-artifacts/asm/install_asm_1.9.sha256 > install_asm.sha256
 ```
